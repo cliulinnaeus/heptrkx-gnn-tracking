@@ -13,6 +13,7 @@ from torch.utils.data import Dataset, random_split
 
 # Local imports
 from datasets.graph import load_graph
+from datasets.graph import get_hit_pos
 
 class HitGraphDataset(Dataset):
     """PyTorch dataset specification for hit graphs"""
@@ -64,15 +65,15 @@ def collate_fn(graphs):
 
     # Allocate the tensors for this batch
     batch_X = np.zeros((batch_size, max_nodes, n_features), dtype=np.float32)
-    batch_Ri = np.zeros((batch_size, max_nodes, max_edges), dtype=np.float32)
-    batch_Ro = np.zeros((batch_size, max_nodes, max_edges), dtype=np.float32)
+    batch_Ri = np.zeros((batch_size, max_edges), dtype=np.long)
+    batch_Ro = np.zeros((batch_size, max_edges), dtype=np.long)
     batch_y = np.zeros((batch_size, max_edges), dtype=np.float32)
 
     # Loop over samples and fill the tensors
     for i, g in enumerate(graphs):
         batch_X[i, :n_nodes[i]] = g.X
-        batch_Ri[i, :n_nodes[i], :n_edges[i]] = g.Ri
-        batch_Ro[i, :n_nodes[i], :n_edges[i]] = g.Ro
+        batch_Ri[i, :n_edges[i]] = get_hit_pos(g.Ri)
+        batch_Ro[i, :n_edges[i]] = get_hit_pos(g.Ro)
         batch_y[i, :n_edges[i]] = g.y
 
     batch_inputs = [torch.from_numpy(bm) for bm in [batch_X, batch_Ri, batch_Ro]]

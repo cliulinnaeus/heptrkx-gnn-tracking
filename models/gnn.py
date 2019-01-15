@@ -22,8 +22,10 @@ class EdgeNetwork(nn.Module):
             nn.Sigmoid())
     def forward(self, X, Ri, Ro):
         # Select the features of the associated nodes
-        bo = torch.bmm(Ro.transpose(1, 2), X)
-        bi = torch.bmm(Ri.transpose(1, 2), X)
+        n_batch, n_hits, n_features = X.size()
+        x1 = X.reshape(-1, n_features)
+        bo = x1[Ro.flatten()].reshape(n_batch, -1, n_features)
+        bi = x1[Ri.flatten()].reshape(n_batch, -1, n_features)
         B = torch.cat([bo, bi], dim=2)
         # Apply the network to each edge
         return self.network(B).squeeze(-1)
@@ -44,12 +46,30 @@ class NodeNetwork(nn.Module):
             nn.Linear(output_dim, output_dim),
             hidden_activation())
     def forward(self, X, e, Ri, Ro):
-        bo = torch.bmm(Ro.transpose(1, 2), X)
-        bi = torch.bmm(Ri.transpose(1, 2), X)
-        Rwo = Ro * e[:,None]
-        Rwi = Ri * e[:,None]
+        n_batch, n_hits, n_features = X.size()
+        n_batch, n_edges = Ri.size()
+        x1 = X.reshape(-1, n_features)
+        bo = x1[Ro.flatten()].reshape(n_batch, -1, n_features)
+        bi = x1[Ri.flatten()].reshape(n_batch, -1, n_features)
+        e_ex = e[:, None].repeat(1, n_hits, 1)
+
+        Rwo  = torch.zeros(e_ex.size())
+        for ib in range(n_batch):
+            n_c = Rwo.shape[2]
+            Rwo[[ib]*n_c, Ro[ib] , range(n_c)] = e_ex[[ib]*n_c, Ro[ib] , range(n_c)]
+
+        Rwi  = torch.zeros(e_ex.size())
+        for ib in range(n_batch):
+            n_c = Rwi.shape[2]
+            Rwi[[ib]*n_c, Ri[ib] , range(n_c)] = e_ex[[ib]*n_c, Ri[ib] , range(n_c)]
+
+        #bo = torch.bmm(Ro.transpose(1, 2), X)
+        #bi = torch.bmm(Ri.transpose(1, 2), X)
+        #Rwo = Ro * e[:,None]
+        #Rwi = Ri * e[:,None]
         mi = torch.bmm(Rwi, bo)
         mo = torch.bmm(Rwo, bi)
+
         M = torch.cat([mi, mo, X], dim=2)
         return self.network(M)
 
@@ -58,7 +78,7 @@ class GNNSegmentClassifier(nn.Module):
     Segment classification graph neural network model.
     Consists of an input network, an edge network, and a node network.
     """
-    def __init__(self, input_dim=2, hidden_dim=8, n_iters=3, hidden_activation=nn.Tanh):
+    def __init__(self, input_dim=3, hidden_dim=8, n_iters=3, hidden_activation=nn.Tanh):
         super(GNNSegmentClassifier, self).__init__()
         self.n_iters = n_iters
         # Setup the input network

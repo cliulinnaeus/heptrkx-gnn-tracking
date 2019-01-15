@@ -41,3 +41,19 @@ def load_graph(filename):
 
 def load_graphs(filenames, graph_type=Graph):
     return [load_graph(f, graph_type) for f in filenames]
+
+def get_hit_pos(relation):
+    if len(relation.shape) == 3:
+        res = []
+        for ib in range(relation.shape[0]):
+            one_res = [
+                relation[ib, :, ic].nonzero()[0][0]
+                for ic in range(relation.shape[2])
+            ]
+            res.append(one_res)
+    else:
+        res = [
+            relation[:, ic].nonzero()[0][0]
+            for ic in range(relation.shape[1])
+        ]
+    return np.array(res, dtype=np.long)
