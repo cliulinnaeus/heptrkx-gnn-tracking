@@ -11,6 +11,7 @@ import os
 
 from .utils_train import load_config
 from .utils_train import create_feed_dict
+from .utils_train import eval_output
 from .prepare import inputs_generator
 
 from . import get_model
@@ -18,7 +19,7 @@ from . import get_model
 import matplotlib.pyplot as plt
 
 
-def create_trained_model(config_name, input_ckpt):
+def create_trained_model(config_name, input_ckpt=None):
     """
     @config: configuration for train_nx_graph
     """
@@ -30,6 +31,8 @@ def create_trained_model(config_name, input_ckpt):
     batch_size = n_graphs   = config_tr['batch_size']   # need optimization
     num_processing_steps_tr = config_tr['n_iters']      ## level of message-passing
     prod_name = config['prod_name']
+    if input_ckpt is None:
+        input_ckpt = os.path.join(config['output_dir'], prod_name)
 
     ckpt_name = 'checkpoint_{:05d}.ckpt'
 
@@ -62,9 +65,9 @@ def create_trained_model(config_name, input_ckpt):
                 "outputs": output_ops_tr,
                 'target': target_ph
         }, feed_dict=feed_dict)
-        odd = predictions['outputs'][-1].edges
-        tdd = predictions['target'].edges
-        return odd, tdd
+        output = predictions['outputs'][-1]
+        target = predictions['target']
+        return eval_output(target, output)
 
     return evaluator
 

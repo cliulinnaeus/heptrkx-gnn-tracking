@@ -58,8 +58,6 @@ if __name__ == "__main__":
     ## start to build tensorflow sessions
     tf.reset_default_graph()
 
-    #from nx_graph.model_mlp import SegmentClassifier
-    #model = SegmentClassifier()
     from nx_graph import get_model
     model = get_model(config['model']['name'])
 
@@ -125,6 +123,10 @@ if __name__ == "__main__":
 
         if elapsed_since_last_log > log_every_seconds:
             # save a checkpoint
+            save_path = saver.save(
+                sess,
+                os.path.join(output_dir, 'checkpoint_{:05d}.ckpt'.format(iteration)))
+
             last_log_time = the_time
             feed_dict = create_feed_dict(generate_input_target, batch_size, input_ph, target_ph)
             test_values = sess.run({
@@ -145,7 +147,4 @@ if __name__ == "__main__":
             with open(log_name, 'a') as f:
                 f.write(out_str)
 
-            save_path = saver.save(
-                sess,
-                os.path.join(output_dir, 'checkpoint_{:05d}.ckpt'.format(iteration)))
     sess.close()

@@ -42,7 +42,8 @@ class MLPGraphIndependent(snt.AbstractModule):
 
 class SegmentClassifier(snt.AbstractModule):
 
-  def __init__(self, name="SegmentClassifier"):
+  def __init__(self,
+               name="SegmentClassifier"):
     super(SegmentClassifier, self).__init__(name=name)
 
     self._encoder = MLPGraphIndependent()
@@ -54,12 +55,10 @@ class SegmentClassifier(snt.AbstractModule):
 
     # Transforms the outputs into the appropriate shapes.
     edge_output_size = 1
-#     edge_fn = lambda: snt.Linear(edge_output_size, name="edge_output")
-#    edge_fn =lambda: snt.nets.MLP([edge_output_size], activation=tf.nn.tanh, name='edge_output')
     edge_fn =lambda: snt.Sequential([
-        snt.Linear(edge_output_size, name='edge_output'),
-        tf.sigmoid
-    ])
+        snt.nets.MLP([LATENT_SIZE/2, edge_output_size],
+                     activation=tf.nn.tanh, name='edge_output'),
+        tf.sigmoid])
 
     with self._enter_variable_scope():
       self._output_transform = modules.GraphIndependent(edge_fn, None, None)

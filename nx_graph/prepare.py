@@ -9,6 +9,13 @@ import os
 import glob
 import re
 
+def to_one_hot(indices, max_value, axis=-1):
+  one_hot = np.eye(max_value)[indices]
+  if axis not in (-1, one_hot.ndim):
+    one_hot = np.moveaxis(one_hot, -1, axis)
+  return one_hot
+
+
 def get_edge_features(in_node, out_node):
     # input are the features of incoming and outgoing nodes
     # they are ordered as [r, phi, z]
@@ -66,16 +73,16 @@ def graph_to_input_target(graph):
         input_graph.add_node(
             node_index, features=create_feature(node_feature, input_node_fields)
         )
-        target_graph.add_node(
-            node_index, features=create_feature(node_feature, target_node_fields)
-        )
+        target_node  = to_one_hot(create_feature(node_feature, target_node_fields).astype(int), 2)[0]
+        target_graph.add_node(node_index, features=target_node)
 
     for receiver, sender, features in graph.edges(data=True):
         input_graph.add_edge(
             sender, receiver, features=create_feature(features, input_edge_fields)
         )
+        target_edge = to_one_hot(create_feature(features, target_edge_fields).astype(int), 2)[0]
         target_graph.add_edge(
-            sender, receiver, features=create_feature(features, target_edge_fields)
+            sender, receiver, features=target_edge
         )
 
     input_graph.graph['features'] = input_graph.graph['features'] = np.array([0.0])
