@@ -1,0 +1,17 @@
+prod_name: nxgraph_small_seq_onehot_001
+output_dir: /global/homes/x/xju/track/gnn/code/gnn_networkx/trained_results
+data:
+    name: hitgraphs
+    input_dir: /global/cscratch1/sd/xju/heptrkx/data/hitgraphs_001
+    section: 0
+
+model:
+    name: model_sequential
+
+train:
+    log_name: train_nx_graph_seq_onehot.log
+    time_lapse:  600  # how often save checkpoint in seconds
+    batch_size: 2
+    iterations: 10000
+    n_iters: 4
+    learning_rate: 0.001
