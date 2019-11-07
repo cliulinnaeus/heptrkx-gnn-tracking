@@ -21,3 +21,14 @@ on Cori at NERSC.
 [datasets/hitgraphs.py](datasets/hitgraphs.py).
 - The main trainer code for the GNN segment classifier lives in
 [trainers/gnn.py](trainers/gnn.py).
+
+
+## Installation
+```bash
+conda create --name heptrkx python=3.7
+conda install -c conda-forge jupyterlab
+git clone https://github.com/xju2/heptrkx-gnn-tracking.git heptrkx
+git checkout -b heptrkx origin/heptrkx
+cd heptrkx
+pip install -e .
+```
