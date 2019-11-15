@@ -43,8 +43,8 @@ def plot_networkx(G, ax=None, only_true=False):
 
     pos = get_pos(Gp)
 
-    nx.draw(Gp, pos, node_color='#A0CBE2', edge_color=edge_colors,
-       width=0.5, with_labels=False, node_size=1, ax=ax, arrows=False)
+    nx.draw(Gp, pos, node_color='#000000', edge_color=edge_colors,
+       width=0.5, with_labels=False, node_size=10, ax=ax, arrows=False)
 
 
 
